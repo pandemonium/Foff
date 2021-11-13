@@ -8,6 +8,7 @@
     <Compile Include="src/Wtf.fs" />
     <Compile Include="src/Types.fs" />
     <Compile Include="src/Decode.fs" />
+    <Compile Include="src/Encode.fs" />
     <Compile Include="src/Program.fs" />
   </ItemGroup>
   <Import Project=".paket\Paket.Restore.targets" />

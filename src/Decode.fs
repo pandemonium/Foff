@@ -7,12 +7,10 @@ open FSharpPlus.Control
 open System
 
 
-module DecodeState =
-  open System.Globalization
+module internal DecodeState =
   open System.IO
-  open Newtonsoft.Json.Linq
-
   open Newtonsoft.Json
+  open Newtonsoft.Json.Linq
 
   let fromValueAt path value =
     { Path = path; Value = value }
@@ -68,4 +66,3 @@ let field (name : string) (decoder : 'a Decoder) : 'a Decoder =
   monad { let! st = DecodeState.state
           let fieldValue = st.Value.[name]
           return! local (DecodeState.atField name fieldValue) decoder }
-
