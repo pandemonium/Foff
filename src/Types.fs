@@ -4,9 +4,6 @@ open FSharpPlus
 open FSharpPlus.Control
 open FSharpPlus.Data
 
-open Newtonsoft.Json
-open Newtonsoft.Json.Linq
-
 
 type JsonValue = Newtonsoft.Json.Linq.JToken
 
@@ -24,7 +21,6 @@ type Because with
 type 'a Out = Result<'a, Because>
 
 type 'a Decoder = ReaderT<DecodeState, 'a Out>
-
 
 (* StateT probably. *)
 type 'a Encoder = 'a -> JsonValue

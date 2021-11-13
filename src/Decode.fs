@@ -1,17 +1,19 @@
 module Foff.Decode
 
 open FSharpPlus
-open FSharpPlus.Control
 open FSharpPlus.Data
+open FSharpPlus.Control
 
 open System
-open System.Globalization
-open System.IO
 
-open Newtonsoft.Json
-open Newtonsoft.Json.Linq
 
 module DecodeState =
+  open System.Globalization
+  open System.IO
+  open Newtonsoft.Json.Linq
+
+  open Newtonsoft.Json
+
   let fromValueAt path value =
     { Path = path; Value = value }
 
@@ -29,27 +31,29 @@ module DecodeState =
         then result <| v.Value<'r> ()
         else throw <| ExpectedType (tokenType.ToString (), state)
 
+  let parse (apply : JsonValue -> _ Out) source : _ Out =
+    let serializer = 
+      JsonSerializerSettings ( DateParseHandling      = DateParseHandling.None,
+                               CheckAdditionalContent = true )
+      |> JsonSerializer.Create
+
+    try use reader = new JsonTextReader (new StringReader (source))
+        serializer.Deserialize<JsonValue> (reader)
+        |> apply
+    with :? JsonReaderException as ex ->
+      throw <| ParserException ex
 
 let fromValue path (decoder : 'a Decoder) =
   DecodeState.fromValueAt path >> ReaderT.run decoder
 
-let fromString decoder value =
-  let serializer = 
-    JsonSerializerSettings ( DateParseHandling      = DateParseHandling.None,
-                             CheckAdditionalContent = true )
-    |> JsonSerializer.Create
-
-  try use reader = new JsonTextReader (new StringReader (value))
-      serializer.Deserialize<JsonValue> (reader)
-      |> fromValue "$" decoder
-  with :? JsonReaderException as ex ->
-    throw <| ParserException ex
+let fromString decoder =
+  fromValue "$" decoder |> DecodeState.parse
 
 let string : string Decoder =
-  DecodeState.primitive JTokenType.String
+  DecodeState.primitive Newtonsoft.Json.Linq.JTokenType.String
 
 let int : int Decoder =
-  DecodeState.primitive JTokenType.Integer
+  DecodeState.primitive Newtonsoft.Json.Linq.JTokenType.Integer
 
 let liftParser (parse : string -> bool * 'a) : 'a Decoder =
   let apply state =
