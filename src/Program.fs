@@ -33,6 +33,59 @@ module Person =
         "age",  Encode.int    it.Age ]
     in contramap image Encode.object
 
+type AddressablePerson =
+  { Denizen  : Person
+    Location : Address }
+
+and Address =
+  { Street     : string
+    PostalCode : int
+    City       : string }
+
+module Address =
+  let make a b c =
+    { Street = a; PostalCode = b; City = c }
+
+  let decoder : Address Decoder =
+    let dec =
+      make <!> Decode.field "street"     Decode.string
+           <*> Decode.field "postalCode" Decode.int
+           <*> Decode.field "city"       Decode.string
+    in dec
+
+  let encoder : Address Encoder =
+    let image it =
+      [ "street",     Encode.string it.Street
+        "postalCode", Encode.int    it.PostalCode
+        "city",       Encode.string it.City ]
+    in contramap image Encode.object
+
+module AddressablePerson =
+  let make a b =
+    { Denizen = a; Location = b }
+
+  let decoder : AddressablePerson Decoder =
+    let dec =
+      make <!> Decode.field "denizen"  Person.decoder
+           <*> Decode.field "location" Address.decoder
+    in dec
+
+  let encoder : AddressablePerson Encoder =
+    let image it =
+      [ "denizen",  Person.encoder  it.Denizen
+        "location", Address.encoder it.Location ]
+    in contramap image Encode.object
+
+type Identity = Free of Person | Addressable of AddressablePerson
+
+module Identity =
+  let decoder : Identity Decoder  =
+    (Free <!> Person.decoder) <|> (Addressable <!> AddressablePerson.decoder)
+
+  let encoder : Identity Encoder =
+    function Free        p -> Person.encoder p
+           | Addressable p -> AddressablePerson.encoder p    
+
 [<EntryPoint>]
 let main argv =
 //  Decode.fromString Decode.string "\"Hello, world\""

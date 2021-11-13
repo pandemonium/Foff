@@ -17,11 +17,8 @@ let string : string Encoder = fun it ->
 let int : int Encoder = fun it ->
   JValue (it) :> JsonValue
 
-let object : (string * JsonValue) list Encoder = fun it ->
-  it
-  |> map (fun (k, v) -> JProperty(k, v))
-  |> JObject
-  :> JsonValue
+let object : (string * JsonValue) list Encoder =
+  map (fun (k, v) -> JProperty(k, v)) >> fun x -> JObject x
 
 let toString space (token : JsonValue) =
   let format     = if space = 0 then Formatting.None 
@@ -33,5 +30,3 @@ let toString space (token : JsonValue) =
 
   token.WriteTo jsonWriter
   stream.ToString ()
-
-//let asString spaces

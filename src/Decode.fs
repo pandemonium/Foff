@@ -66,3 +66,12 @@ let field (name : string) (decoder : 'a Decoder) : 'a Decoder =
   monad { let! st = DecodeState.state
           let fieldValue = st.Value.[name]
           return! local (DecodeState.atField name fieldValue) decoder }
+
+let oneOf (decoders : 'a Decoder NonEmptyList) : 'a Decoder =
+  reduce (<|>) decoders
+
+let unit : unit Decoder =
+  result ()
+
+let fail msg : _ Decoder =
+  throw <| Fail msg

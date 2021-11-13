@@ -13,6 +13,7 @@ type DecodeState =
 
 type Because = ParserException of exn
              | ExpectedType    of expectation : string * state : DecodeState
+             | Fail            of string
              | AndThen         of Because * Because
 
 type Because with
